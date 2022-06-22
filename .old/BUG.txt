@@ -1,0 +1,2 @@
+1. Jika mengganti cycle atau data, grafik lama tidak hilang (fixed)
+2. Data B07 dan B18 tidak mengenai threshold (fixed)
