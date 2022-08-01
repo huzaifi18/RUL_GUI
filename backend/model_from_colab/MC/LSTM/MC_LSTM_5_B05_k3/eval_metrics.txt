@@ -1,0 +1,8 @@
+Train data: ["model_build/data/NASA/charge/train/B0006_charge.csv", "model_build/data/NASA/charge/train/B0018_charge.csv"]
+Val data: ["model_build/data/NASA/charge/train/B0007_charge.csv"]
+Test data: ["model_build/data/NASA/charge/test/B0005_charge.csv"]
+
+Test Mean Absolute Error: "0.04758599"
+Test Mean Square Error: "0.0031302983"
+Test Mean Absolute Percentage Error: "0.032439444"
+Test Root Mean Squared Error: "0.05594907"

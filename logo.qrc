@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>BRIN resized.png</file>
+  </qresource>
+</RCC>
