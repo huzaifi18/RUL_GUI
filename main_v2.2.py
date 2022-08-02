@@ -106,7 +106,7 @@ class Ui_MainWindow(object):
         self.boxData.currentIndexChanged["QString"].connect(self.getData)
 
         # List Feature
-        self.feature = ["None", "C + V", "C + VIT"]
+        self.feature = ["None", "C + V", "C + VIT", "C"]
         self.boxFeature.addItems(self.feature)
         self.boxFeature.currentIndexChanged["QString"].connect(self.getFeature)
 
@@ -145,7 +145,8 @@ class Ui_MainWindow(object):
             print("Feature: ", value)
             featureDict = {
                 "C + V": 0,
-                "C + VIT": 1
+                "C + VIT": 1,
+                "C": 2
             }
             self.feature = featureDict[value]
             print(self.feature)
@@ -172,13 +173,13 @@ class Ui_MainWindow(object):
         threshold.fill(1.4)
         t = threshold
 
-        if self.data == 0:
+        if self.data == 3 or self.feature == 2:
+            intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
+        elif self.data == 0:
             intersection = np.argwhere(np.isclose(t, self.pred_flat, rtol=0.001, atol=0.001)).flatten()
         elif self.data == 3 and self.model == 1 and self.feature == 0:
             intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
             intersection = intersection + 1
-        elif self.data == 3:
-            intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
         else:
             intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
 
@@ -208,56 +209,42 @@ class Ui_MainWindow(object):
             # jika pakai legend
             self.ax1.legend()
 
-            # jika pakai anotasi
             if self.data == 0:
-                plt.gcf().text(0.3, 0.7, text, fontsize=12)
-                #         plt.gcf().text(0.12, 0.5, "Starting Cycle", fontsize=12);
-                if self.model == 1 and self.feature == 0:
-                    pass
-                #             plt.gcf().text(0.45, 0.5, "End of Life", fontsize=12); # sc hybrid
-                elif self.model == 0 and self.feature == 0:
-                    pass
-                #             plt.gcf().text(0.44, 0.5, "End of Life", fontsize=12); # sc lstm
-                elif self.model == 1 and self.feature == 1:
-                    pass
-                #             plt.gcf().text(0.485, 0.5, "End of Life", fontsize=12); # mc hybrid
+                if self.feature == 2:
+                    plt.gcf().text(0.34, 0.7, text, fontsize=12)
                 else:
-                    pass
-            #             plt.gcf().text(0.46, 0.5, "End of Life", fontsize=12); # mc lstm
+                    plt.gcf().text(0.3, 0.7, text, fontsize=12)
+
             elif self.data == 1:
-                #         plt.gcf().text(0.12, 0.52, "Starting Cycle", fontsize=12);
-                if self.model == 0 and self.feature == 0:
+                if self.feature == 2:
+                    plt.gcf().text(0.26, 0.88, text, fontsize=12)
+                elif self.model == 0 and self.feature == 0:
                     plt.gcf().text(0.25, 0.83, text, fontsize=12)
-                #             plt.gcf().text(0.36, 0.7, "End of Life", fontsize=12); # sc lstm
                 elif self.model == 1 and self.feature == 1:
                     plt.gcf().text(0.28, 0.83, text, fontsize=12)
-                #             plt.gcf().text(0.45, 0.7, "End of Life", fontsize=12); # mc hybrid
                 elif self.model == 0 and self.feature == 1:
                     plt.gcf().text(0.45, 0.83, text, fontsize=12)
-                #             plt.gcf().text(0.3, 0.7, "End of Life", fontsize=12); # mc lstm
                 else:
                     plt.gcf().text(0.3, 0.83, text, fontsize=12)
-            #             plt.gcf().text(0.5, 0.7, "End of Life", fontsize=12); # sc hybrid
+
             elif self.data == 3:
-                #         plt.gcf().text(0.19, 0.35, "Starting Cycle", fontsize=12);
                 if self.model == 0 and self.feature == 0:
                     plt.gcf().text(0.45, 0.83, text, fontsize=12)
-                #             plt.gcf().text(0.6, 0.7, "End of Life", fontsize=12); # sc lstm
                 elif self.model == 1 and self.feature == 1:
                     plt.gcf().text(0.45, 0.83, text, fontsize=12)
-                #             plt.gcf().text(0.62, 0.7, "End of Life", fontsize=12); # mc hybrid
                 else:
                     plt.gcf().text(0.37, 0.83, text, fontsize=12)
-        #             plt.gcf().text(0.553, 0.7, "End of Life", fontsize=12); # sc hybrid
 
         except Exception as e:
-            self.ax1.plot(self.X, self.pred_flat, linewidth=2, color='k')
+            self.ax1.plot(self.X, self.pred_flat, linewidth=2, color='k', label="Prediction")
+            self.ax1.axhline(y=1.4, color='r', ls='-.', label="Failure Threshold")
             self.ax1.set_yticks(np.arange(1.4, max(self.pred_flat), 0.15));
             self.ax2.set_yticks(np.arange(0, max(self.X), 10));
             self.ax2.set_xticks([1]);
             self.ax1.set_ylabel("Capacity (Ah)", fontsize=12)
             self.ax1.set_xlabel("Cycles", fontsize=12)
             self.ax2.set_xlabel("Remaining cycles", fontsize=12)
+            self.ax1.legend()
 
         self.fig.tight_layout()
         self.canvas.draw_idle()
@@ -268,7 +255,20 @@ class Ui_MainWindow(object):
             x_test, y_test = utils.getData(dataPath)
             print("Berhasil load data")
 
-            if self.feature == 0:
+            if self.feature == 2 and self.model == 0:
+                testX, testY, SS = utils.extract_VIT_capacity([x_test[self.data]], [y_test[self.data]], 5, 1,
+                                                              10,
+                                                              self.feature, self.model, c_only=True)
+                C_LSTM_model = tf.keras.models.load_model(
+                    "backend/model_from_colab/SC/C_LSTM/C_LSTM_5_B05_k1/saved_model_and_weight/")
+                C_LSTM_pred = C_LSTM_model.predict(testX)
+                self.inv_pred = SS.inverse_transform(C_LSTM_pred)
+                self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
+                self.X = range(len(self.inv_pred))
+                self.pred_flat = self.inv_pred.flatten()
+                self.plot()
+
+            elif self.feature == 0:
                 if self.model == 0:
                     testX, testY, SS = utils.extract_VIT_capacity([x_test[self.data]], [y_test[self.data]], 5, 1,
                                                                   10,
@@ -297,6 +297,7 @@ class Ui_MainWindow(object):
                     self.X = range(len(self.inv_pred))
                     self.pred_flat = self.inv_pred.flatten()
                 print("Berhasil load model dan transform data")
+                self.plot()
 
             elif self.feature == 1:
                 if self.model == 0:
@@ -337,11 +338,18 @@ class Ui_MainWindow(object):
                     self.X = range(len(self.inv_pred))
                     self.pred_flat = self.inv_pred.flatten()
                 print("Berhasil load model dan transform data")
+                self.plot()
 
-            self.plot()
+            elif self.feature == 2 and self.model != 0:
+                self.plot()
+                self.fig.clear()
+                plt.gcf().text(0.3, 0.5, "Silahkan pilih model AI yang lain", fontsize=12)
+
+
             print("Berhasil plot")
 
         except Exception as e:
+
             print("Gagal Memprediksi")
 
 

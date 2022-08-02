@@ -15,7 +15,7 @@ def preprocess(dataset):
     scaled = scalers.fit_transform(dataset)
     return scaled, scalers
 
-def extract_VIT_capacity(x_datasets, y_datasets, seq_len, hop, sample, feature, model, c = False, v = False, II = False, t = False):
+def extract_VIT_capacity(x_datasets, y_datasets, seq_len, hop, sample, feature, model, c = False, v = False, II = False, t = False, c_only = False):
     V = []
     I = []
     T = []
@@ -103,7 +103,13 @@ def extract_VIT_capacity(x_datasets, y_datasets, seq_len, hop, sample, feature, 
                 VIT_temp = np.concatenate([scaled_V, scaled_I, scaled_T, scaled_C], axis=1)
 
 
-        if feature == 0:
+
+        if feature == 2 and model == 0 and c_only:
+            for i in range(data_len):
+                x.append(scaled_C[(hop * i):(hop * i + seq_len)])
+                y.append(scaled_C[hop * i + seq_len])
+        
+        elif feature == 0:
             if model == 0:
                 for i in range(data_len):
                     x.append(VC_temp[(hop * i):(hop * i + seq_len)])
