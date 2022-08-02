@@ -15,6 +15,7 @@ import numpy as np
 
 # plot utilities
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import matplotlib
 matplotlib.use("Qt5Agg")
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -117,62 +118,231 @@ class Ui_MainWindow(object):
         # Jika tombol predict diklik
         self.predictButton.clicked.connect(self.predict)
 
+        # plotting
+        self.fig = plt.figure()
+        self.canvas = FigureCanvasQTAgg(self.fig)
+
+        self.plotSpace.addWidget(self.canvas)
+
 
     def getData(self, value):
         try:
             print("Data battery: ", value)
-            global data
             dataDict = {
                 "B05": 0,
                 "B06": 1,
                 "B07": 2,
                 "B18": 3,
             }
-            data = dataDict[value]
-            print(data)
-            return data
+            self.data = dataDict[value]
+            print(self.data)
+            return self.data
         except Exception as e:
             print("Gagal memilih data")
 
     def getFeature(self, value):
         try:
             print("Feature: ", value)
-            global feature
             featureDict = {
                 "C + V": 0,
                 "C + VIT": 1
             }
-            feature = featureDict[value]
-            print(feature)
-            return feature
+            self.feature = featureDict[value]
+            print(self.feature)
+            return self.feature
         except Exception as e:
             print("Gagal memilih feature")
 
     def getModel(self, value):
         try:
             print("Model: ", value)
-            global model
             modelDict = {
                 "LSTM": 0,
                 "Hybrid": 1
             }
-            model = modelDict[value]
-            print(model)
-            return model
+            self.model = modelDict[value]
+            print(self.model)
+            return self.model
         except Exception as e:
             print("Gagal memilih model")
 
     def plot(self):
-        pass
+        self.fig.clear()
+        threshold = np.zeros((len(self.inv_pred)))
+        threshold.fill(1.4)
+        t = threshold
+
+        if self.data == 0:
+            intersection = np.argwhere(np.isclose(t, self.pred_flat, rtol=0.001, atol=0.001)).flatten()
+        elif self.data == 3 and self.model == 1 and self.feature == 0:
+            intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
+            intersection = intersection + 1
+        elif self.data == 3:
+            intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
+        else:
+            intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
+
+        try:
+            gs = gridspec.GridSpec(1, 2, width_ratios=[8, 1])
+            self.ax1 = self.fig.add_subplot(gs[0])
+            self.ax2 = self.fig.add_subplot(gs[1])
+
+            self.ax1.plot(self.X[60:81], self.pred_flat[60:81], linewidth=2, color='k')
+            self.ax1.plot(self.X[80:intersection[-1] + 1], self.pred_flat[80:intersection[-1] + 1], linewidth=2, color='b')
+            self.ax1.plot(self.X[intersection[-1]:], self.pred_flat[intersection[-1]:], linewidth=2, color='b', ls=':')
+
+            self.ax1.axvline(x=80, color='g', ls='--', label="Starting Point")
+            self.ax1.axvline(intersection[-1], color='m', ls='--', label="End of Life")
+
+            self.ax1.axhline(y=1.4, color='r', ls='-.', label="Failure Threshold")
+
+            self.ax1.set_ylabel("Capacity (Ah)", fontsize=12)
+            self.ax1.set_xlabel("Cycles", fontsize=12)
+
+            # ax2 = fig.add_subplot(122)
+            self.ax2.bar(['Remaining Cycle'], [intersection[-1] - 80], color='g')
+            self.ax2.set_yticks(np.arange(0, max(self.X), 10));
+
+            text = f"RUL = {intersection[-1] - 80} cycles"
+
+            # jika pakai legend
+            self.ax1.legend()
+
+            # jika pakai anotasi
+            if self.data == 0:
+                plt.gcf().text(0.3, 0.7, text, fontsize=12)
+                #         plt.gcf().text(0.12, 0.5, "Starting Cycle", fontsize=12);
+                if self.model == 1 and self.feature == 0:
+                    pass
+                #             plt.gcf().text(0.45, 0.5, "End of Life", fontsize=12); # sc hybrid
+                elif self.model == 0 and self.feature == 0:
+                    pass
+                #             plt.gcf().text(0.44, 0.5, "End of Life", fontsize=12); # sc lstm
+                elif self.model == 1 and self.feature == 1:
+                    pass
+                #             plt.gcf().text(0.485, 0.5, "End of Life", fontsize=12); # mc hybrid
+                else:
+                    pass
+            #             plt.gcf().text(0.46, 0.5, "End of Life", fontsize=12); # mc lstm
+            elif self.data == 1:
+                #         plt.gcf().text(0.12, 0.52, "Starting Cycle", fontsize=12);
+                if self.model == 0 and self.feature == 0:
+                    plt.gcf().text(0.25, 0.83, text, fontsize=12)
+                #             plt.gcf().text(0.36, 0.7, "End of Life", fontsize=12); # sc lstm
+                elif self.model == 1 and self.feature == 1:
+                    plt.gcf().text(0.28, 0.83, text, fontsize=12)
+                #             plt.gcf().text(0.45, 0.7, "End of Life", fontsize=12); # mc hybrid
+                elif self.model == 0 and self.feature == 1:
+                    plt.gcf().text(0.45, 0.83, text, fontsize=12)
+                #             plt.gcf().text(0.3, 0.7, "End of Life", fontsize=12); # mc lstm
+                else:
+                    plt.gcf().text(0.3, 0.83, text, fontsize=12)
+            #             plt.gcf().text(0.5, 0.7, "End of Life", fontsize=12); # sc hybrid
+            elif self.data == 3:
+                #         plt.gcf().text(0.19, 0.35, "Starting Cycle", fontsize=12);
+                if self.model == 0 and self.feature == 0:
+                    plt.gcf().text(0.45, 0.83, text, fontsize=12)
+                #             plt.gcf().text(0.6, 0.7, "End of Life", fontsize=12); # sc lstm
+                elif self.model == 1 and self.feature == 1:
+                    plt.gcf().text(0.45, 0.83, text, fontsize=12)
+                #             plt.gcf().text(0.62, 0.7, "End of Life", fontsize=12); # mc hybrid
+                else:
+                    plt.gcf().text(0.37, 0.83, text, fontsize=12)
+        #             plt.gcf().text(0.553, 0.7, "End of Life", fontsize=12); # sc hybrid
+
+        except Exception as e:
+            self.ax1.plot(self.X, self.pred_flat, linewidth=2, color='k')
+            self.ax1.set_yticks(np.arange(1.4, max(self.pred_flat), 0.15));
+            self.ax2.set_yticks(np.arange(0, max(self.X), 10));
+            self.ax2.set_xticks([1]);
+            self.ax1.set_ylabel("Capacity (Ah)", fontsize=12)
+            self.ax1.set_xlabel("Cycles", fontsize=12)
+            self.ax2.set_xlabel("Remaining cycles", fontsize=12)
+
+        self.fig.tight_layout()
+        self.canvas.draw_idle()
 
     def predict(self):
-        pass
+        try:
+            dataPath = "backend/data/NASA/"
+            x_test, y_test = utils.getData(dataPath)
+            print("Berhasil load data")
 
-        # try:
-        #     dataPath = "backend/data/NASA/"
-        #     x_test, y_test = utils.getData(dataPath)
-        #     print("Berhasil load data")
+            if self.feature == 0:
+                if self.model == 0:
+                    testX, testY, SS = utils.extract_VIT_capacity([x_test[self.data]], [y_test[self.data]], 5, 1,
+                                                                  10,
+                                                                  self.feature, self.model)
+                    SC_LSTM_model = tf.keras.models.load_model(
+                        "backend/model_from_colab/SC/LSTM/SC_LSTM_5_B18_k2/saved_model_and_weight/")
+                    SC_LSTM_pred = SC_LSTM_model.predict(testX)
+                    self.inv_pred = SS.inverse_transform(SC_LSTM_pred)
+                    self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
+                    self.X = range(len(self.inv_pred))
+                    self.pred_flat = self.inv_pred.flatten()
 
+                elif self.model == 1:
+                    testX_SC_h_LSTM, testY_SC_h_LSTM, SS = utils.extract_VIT_capacity([x_test[self.data]],
+                                                                                      [y_test[self.data]], 5, 1, 10,
+                                                                                      self.feature,
+                                                                                      self.model, c=True)
+                    testX_SC_h_CNN, testY_SC_h_CNN, SS = utils.extract_VIT_capacity([x_test[self.data]],
+                                                                                    [y_test[self.data]], 5, 1, 10,
+                                                                                    self.feature, self.model)
+                    SC_hybrid_model = tf.keras.models.load_model(
+                        "backend/model_from_colab/SC/hybrid/SC-CNN-LSTM_5_B07_k2/saved_model_and_weight/")
+                    SC_hybrid_pred = SC_hybrid_model.predict([testX_SC_h_LSTM, testX_SC_h_CNN])
+                    self.inv_pred = SS.inverse_transform(SC_hybrid_pred)
+                    self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
+                    self.X = range(len(self.inv_pred))
+                    self.pred_flat = self.inv_pred.flatten()
+                print("Berhasil load model dan transform data")
+
+            elif self.feature == 1:
+                if self.model == 0:
+                    testX, testY, SS = utils.extract_VIT_capacity([x_test[self.data]], [y_test[self.data]], 5, 1,
+                                                                  10,
+                                                                  self.feature, self.model)
+                    MC_LSTM_model = tf.keras.models.load_model(
+                        "backend/model_from_colab/MC/LSTM/MC_LSTM_5_B06_k2/saved_model_and_weight/")
+                    MC_LSTM_pred = MC_LSTM_model.predict(testX)
+                    self.inv_pred = SS.inverse_transform(MC_LSTM_pred)
+                    self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
+                    self.X = range(len(self.inv_pred))
+                    self.pred_flat = self.inv_pred.flatten()
+
+                elif self.model == 1:
+                    testX_MC_h_LSTM, testY_MC_h_LSTM, SS = utils.extract_VIT_capacity([x_test[self.data]],
+                                                                                      [y_test[self.data]], 5, 1, 10,
+                                                                                      self.feature,
+                                                                                      self.model, c=True)
+                    testX_MC_h_V_CNN, testY_MC_h_V_CNN, SS = utils.extract_VIT_capacity([x_test[self.data]],
+                                                                                        [y_test[self.data]], 5, 1, 10,
+                                                                                        self.feature,
+                                                                                        self.model, v=True)
+                    testX_MC_h_I_CNN, testY_MC_h_I_CNN, SS = utils.extract_VIT_capacity([x_test[self.data]],
+                                                                                        [y_test[self.data]], 5, 1, 10,
+                                                                                        self.feature,
+                                                                                        self.model, II=True)
+                    testX_MC_h_T_CNN, testY_MC_h_T_CNN, SS = utils.extract_VIT_capacity([x_test[self.data]],
+                                                                                        [y_test[self.data]], 5, 1, 10,
+                                                                                        self.feature,
+                                                                                        self.model, t=True)
+                    MC_hybrid_model = tf.keras.models.load_model(
+                        "backend/model_from_colab/MC/hybrid/SCNN+LSTM_5_B07_k3/saved_model_and_weight/")
+                    MC_hybrid_pred = MC_hybrid_model.predict(
+                        [testX_MC_h_LSTM, testX_MC_h_V_CNN, testX_MC_h_I_CNN, testX_MC_h_T_CNN])
+                    self.inv_pred = SS.inverse_transform(MC_hybrid_pred)
+                    self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
+                    self.X = range(len(self.inv_pred))
+                    self.pred_flat = self.inv_pred.flatten()
+                print("Berhasil load model dan transform data")
+
+            self.plot()
+            print("Berhasil plot")
+
+        except Exception as e:
+            print("Gagal Memprediksi")
 
 
     def retranslateUi(self, MainWindow):
