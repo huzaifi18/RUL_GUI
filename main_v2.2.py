@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'v2.2.ui'
+# Form implementation generated from reading ui file 'v2.4.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(902, 717)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("BRIN resized.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("backend/BRIN_edge.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -44,8 +44,8 @@ class Ui_MainWindow(object):
         self.logo_brin = QtWidgets.QLabel(self.centralwidget)
         self.logo_brin.setEnabled(True)
         self.logo_brin.setText("")
-        self.logo_brin.setPixmap(QtGui.QPixmap("BRIN resized.png"))
-        self.logo_brin.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.logo_brin.setPixmap(QtGui.QPixmap("backend/BRIN_main.png"))
+        self.logo_brin.setAlignment(QtCore.Qt.AlignCenter)
         self.logo_brin.setObjectName("logo_brin")
         self.horizontalLayout.addWidget(self.logo_brin)
         self.judul = QtWidgets.QLabel(self.centralwidget)
@@ -64,19 +64,22 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         self.Data = QtWidgets.QLabel(self.groupBox)
-        self.Data.setTextFormat(QtCore.Qt.MarkdownText)
+        # self.Data.setTextFormat(QtCore.Qt.MarkdownText)
         self.Data.setObjectName("Data")
+        self.Data.setIndent(89)
         self.gridLayout.addWidget(self.Data, 0, 0, 1, 1)
         self.boxData = QtWidgets.QComboBox(self.groupBox)
         self.boxData.setObjectName("boxData")
         self.gridLayout.addWidget(self.boxData, 0, 1, 1, 1)
         self.Feature = QtWidgets.QLabel(self.groupBox)
+        self.Feature.setIndent(69)
         self.Feature.setObjectName("Feature")
         self.gridLayout.addWidget(self.Feature, 0, 2, 1, 1)
         self.boxFeature = QtWidgets.QComboBox(self.groupBox)
         self.boxFeature.setObjectName("boxFeature")
         self.gridLayout.addWidget(self.boxFeature, 0, 3, 1, 1)
         self.Model = QtWidgets.QLabel(self.groupBox)
+        self.Model.setIndent(61)
         self.Model.setObjectName("Model")
         self.gridLayout.addWidget(self.Model, 0, 4, 1, 1)
         self.boxModel = QtWidgets.QComboBox(self.groupBox)
@@ -260,7 +263,7 @@ class Ui_MainWindow(object):
                                                               10,
                                                               self.feature, self.model, c_only=True)
                 C_LSTM_model = tf.keras.models.load_model(
-                    "backend/model_from_colab/SC/C_LSTM/C_LSTM_5_B05_k1/saved_model_and_weight/")
+                    "backend/model/C_LSTM_model_B05_k1.h5")
                 C_LSTM_pred = C_LSTM_model.predict(testX)
                 self.inv_pred = SS.inverse_transform(C_LSTM_pred)
                 self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
@@ -274,7 +277,7 @@ class Ui_MainWindow(object):
                                                                   10,
                                                                   self.feature, self.model)
                     SC_LSTM_model = tf.keras.models.load_model(
-                        "backend/model_from_colab/SC/LSTM/SC_LSTM_5_B18_k2/saved_model_and_weight/")
+                        "backend/model/SC_LSTM_model_B18_k2.h5")
                     SC_LSTM_pred = SC_LSTM_model.predict(testX)
                     self.inv_pred = SS.inverse_transform(SC_LSTM_pred)
                     self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
@@ -290,7 +293,7 @@ class Ui_MainWindow(object):
                                                                                     [y_test[self.data]], 5, 1, 10,
                                                                                     self.feature, self.model)
                     SC_hybrid_model = tf.keras.models.load_model(
-                        "backend/model_from_colab/SC/hybrid/SC-CNN-LSTM_5_B07_k2/saved_model_and_weight/")
+                        "backend/model/SC_CNN+LSTM_model_B07_k2.h5")
                     SC_hybrid_pred = SC_hybrid_model.predict([testX_SC_h_LSTM, testX_SC_h_CNN])
                     self.inv_pred = SS.inverse_transform(SC_hybrid_pred)
                     self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
@@ -305,7 +308,7 @@ class Ui_MainWindow(object):
                                                                   10,
                                                                   self.feature, self.model)
                     MC_LSTM_model = tf.keras.models.load_model(
-                        "backend/model_from_colab/MC/LSTM/MC_LSTM_5_B06_k2/saved_model_and_weight/")
+                        "backend/model/MC_LSTM_model_B06_k2.h5")
                     MC_LSTM_pred = MC_LSTM_model.predict(testX)
                     self.inv_pred = SS.inverse_transform(MC_LSTM_pred)
                     self.pred = self.inv_pred.reshape(self.inv_pred.shape[0])
@@ -330,7 +333,7 @@ class Ui_MainWindow(object):
                                                                                         self.feature,
                                                                                         self.model, t=True)
                     MC_hybrid_model = tf.keras.models.load_model(
-                        "backend/model_from_colab/MC/hybrid/SCNN+LSTM_5_B07_k3/saved_model_and_weight/")
+                        "backend/model/MC_SCNN+LSTM_model_B07_k3.h5")
                     MC_hybrid_pred = MC_hybrid_model.predict(
                         [testX_MC_h_LSTM, testX_MC_h_V_CNN, testX_MC_h_I_CNN, testX_MC_h_T_CNN])
                     self.inv_pred = SS.inverse_transform(MC_hybrid_pred)
@@ -341,15 +344,13 @@ class Ui_MainWindow(object):
                 self.plot()
 
             elif self.feature == 2 and self.model != 0:
-                self.plot()
                 self.fig.clear()
-                plt.gcf().text(0.3, 0.5, "Silahkan pilih model AI yang lain", fontsize=12)
-
+                plt.gcf().text(0.5, 0.5, "Silahkan pilih model AI yang lain", fontsize=14, horizontalalignment='center', verticalalignment='center')
+                self.canvas.draw_idle()
 
             print("Berhasil plot")
 
         except Exception as e:
-
             print("Gagal Memprediksi")
 
 
