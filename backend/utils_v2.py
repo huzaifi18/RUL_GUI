@@ -5,7 +5,7 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 
 SEED = 12345
-os.environ["CUDA_VISIBLE_DEVICES"] = str(SEED)
+# os.environ["CUDA_VISIBLE_DEVICES"] = str(SEED)
 os.environ['PYTHONHASHSEED'] = str(SEED)
 np.random.seed(SEED)
 rn.seed(SEED)
@@ -107,29 +107,29 @@ def extract_VIT_capacity(x_datasets, y_datasets, seq_len, hop, sample, feature, 
         if feature == 2 and model == 0 and c_only:
             for i in range(data_len):
                 x.append(scaled_C[(hop * i):(hop * i + seq_len)])
-                y.append(scaled_C[hop * i + seq_len])
+                # y.append(scaled_C[hop * i + seq_len])
         
         elif feature == 0:
             if model == 0:
                 for i in range(data_len):
                     x.append(VC_temp[(hop * i):(hop * i + seq_len)])
-                    y.append(scaled_C[hop * i + seq_len])
+                    # y.append(scaled_C[hop * i + seq_len])
             
             elif model == 1:
                 if c:
                     for i in range(data_len):
                         x.append(scaled_C[(hop * i):(hop * i + seq_len)])
-                        y.append(scaled_C[hop * i + seq_len])
+                        # y.append(scaled_C[hop * i + seq_len])
                 else:
                     for i in range(data_len):
                         x.append(scaled_V[(hop * i):(hop * i + seq_len)])
-                        y.append(scaled_C[hop * i + seq_len])
+                        # y.append(scaled_C[hop * i + seq_len])
                     
         elif feature == 1:
             if model == 0:
                 for i in range(data_len):
                     x.append(VIT_temp[(hop * i):(hop * i + seq_len)])
-                    y.append(scaled_C[hop * i + seq_len])
+                    # y.append(scaled_C[hop * i + seq_len])
 
             elif model == 1:
                 if v:
@@ -145,10 +145,11 @@ def extract_VIT_capacity(x_datasets, y_datasets, seq_len, hop, sample, feature, 
                     for i in range(data_len):
                         x.append(scaled_C[(hop * i):(hop * i + seq_len)])
 
-                for i in range(data_len):
-                    y.append(scaled_C[hop * i + seq_len])
+                # for i in range(data_len):
+                #     y.append(scaled_C[hop * i + seq_len])
 
-    return np.array(x), np.array(y), scaler_C
+    # return np.array(x), np.array(y), scaler_C
+    return np.array(x), scaler_C
 
 
 def getData(dataPath):
