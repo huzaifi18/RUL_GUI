@@ -206,19 +206,22 @@ class Ui_MainWindow(object):
         :return:
         """
         self.fig.clear()  # clear figure bekas plot sebelumnya
+        self.failure_point = round(float(max(self.inv_pred)[0] * 0.75), 2) # failure point dihitung dgn (max cap * 0,75)
         threshold = np.zeros(
             (len(self.inv_pred)))  # list kosong dengan size sesuai dengan banyaknya cucle hasil prediksi
-        threshold.fill(1.4)  # isi list kosong dengan 1.4 (failure threshold)
+        threshold.fill(self.failure_point)  # isi list kosong dengan failure threshold
         t = threshold
 
-        if self.data == 3 or self.feature == 2:  # data B7 & fitur C
+        if self.feature == 0 and self.data == 1:
+            intersection = np.argwhere(np.isclose(t, self.pred_flat, rtol=0.01, atol=0.001)).flatten()
+        elif self.data == 3:  # data B18 & fitur C
             intersection = np.argwhere(
                 np.diff(np.sign(t - self.pred_flat))).flatten()  # titik potong antara grafik dengan threshold
         elif self.data == 0:  # data B05
             intersection = np.argwhere(np.isclose(t, self.pred_flat, rtol=0.001, atol=0.001)).flatten()
-        elif self.data == 3 and self.model == 1 and self.feature == 0:  # data B7 & model hybrid & fitur C+VIT
-            intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
-            intersection = intersection + 1
+        # elif self.data == 3 and self.model == 1 and self.feature == 0:  # data B18 & model hybrid & fitur C+VIT
+        #     intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
+        #     intersection = intersection + 1
         else:
             intersection = np.argwhere(np.diff(np.sign(t - self.pred_flat))).flatten()
 
@@ -228,33 +231,39 @@ class Ui_MainWindow(object):
             self.ax1 = self.fig.add_subplot(gs[0])  # axis untuk plot grafik
             self.ax2 = self.fig.add_subplot(gs[1])  # axis untuk bar plot
 
-            self.ax1.plot(self.X[60:81], self.pred_flat[60:81], linewidth=2,
-                          color='k')  # plot grafik, 60=cycle awal untuk ditampilkan, 81=akhir plot
-            self.ax1.plot(self.X[80:intersection[-1] + 1], self.pred_flat[80:intersection[-1] + 1], linewidth=2,
-                          color='b')  # plot prediksi, 80=starting point, intersection[-1]+1: titik potong terakhir
+            if self.data == 1 and self.feature == 1 and self.model == 0: # Data B06, fitur C+VIT, model LSTM
+                starting_point = 60
+                self.ax1.plot(self.X[50:starting_point + 1], self.pred_flat[50:starting_point + 1], linewidth=2, color='k')
+                self.ax1.plot(self.X[starting_point:intersection[-1] + 1], self.pred_flat[starting_point:intersection[-1] + 1],
+                         linewidth=2, color='b')
+                self.ax1.axvline(x=starting_point, color='g', ls='--', label="Starting Point")
+            else:
+                starting_point = 80
+                self.ax1.plot(self.X[60:starting_point + 1], self.pred_flat[60:starting_point + 1], linewidth=2, color='k')
+                self.ax1.plot(self.X[starting_point:intersection[-1] + 1], self.pred_flat[starting_point:intersection[-1] + 1],
+                         linewidth=2, color='b')
+                self.ax1.axvline(x=starting_point, color='g', ls='--', label="Starting Point")
+
             self.ax1.plot(self.X[intersection[-1]:], self.pred_flat[intersection[-1]:], linewidth=2, color='b',
                           ls=':')  # plot prediksi melewati failure threshold
-
-            self.ax1.axvline(x=80, color='g', ls='--',
-                             label="Starting Point")  # vertical line untuk membatasi cycle awal dengan prediction
-            # starting point
             self.ax1.axvline(intersection[-1], color='m', ls='--',
                              label="End of Life")  # vertical line ketika grafik mencapai EoL
 
-            self.ax1.axhline(y=1.4, color='r', ls='-.',
+            self.ax1.axhline(y=self.failure_point, color='r', ls='-.',
                              label="Failure Threshold")  # horizontal line untuk failure threshold
 
             self.ax1.set_ylabel("Capacity (Ah)", fontsize=12)
             self.ax1.set_xlabel("Cycles", fontsize=12)
 
-            self.ax2.bar(['Remaining Cycle'], [intersection[-1] - 80],
+            self.ax2.bar(['Remaining Cycle'], [intersection[-1] - starting_point],
                          color='g')  # bar plot remaining cycle, titik potong - starting point ([intersection[-1] - 80])
             self.ax2.set_yticks(np.arange(0, max(self.X), 10));  # sumbu y bar plot (list dari 0 sampai cycle terakhir)
 
-            text = f"RUL = {intersection[-1] - 80} cycles"
+            text = f"RUL = {intersection[-1] - starting_point} cycles" # teks untuk menampilkan RUL di grafik
 
             self.ax1.legend()  # menampilkan legend
 
+            # setting posisi teks RUL di grafik
             if self.data == 0:  # data B05
                 if self.feature == 2:  # fitur C
                     plt.gcf().text(0.34, 0.7, text, fontsize=12)  # setting tulisan RUL = ... di tengah gambar
@@ -262,16 +271,17 @@ class Ui_MainWindow(object):
                     plt.gcf().text(0.3, 0.7, text, fontsize=12)
 
             elif self.data == 1:  # data B06
-                if self.feature == 2:  # fitur C
-                    plt.gcf().text(0.26, 0.88, text, fontsize=12)
-                elif self.model == 0 and self.feature == 0:  # model LSTM & fitur C+V
-                    plt.gcf().text(0.25, 0.83, text, fontsize=12)
-                elif self.model == 1 and self.feature == 1:  # model hybrid & fitur C+VIT
-                    plt.gcf().text(0.28, 0.83, text, fontsize=12)
-                elif self.model == 0 and self.feature == 1:  # model LSTM & fitur c+VIT
-                    plt.gcf().text(0.45, 0.83, text, fontsize=12)
-                else:
-                    plt.gcf().text(0.3, 0.83, text, fontsize=12)
+                plt.gcf().text(0.35, 0.83, text, fontsize=12)
+                # if self.feature == 2:  # fitur C
+                #     plt.gcf().text(0.35, 0.88, text, fontsize=12)
+                # elif self.model == 0 and self.feature == 0:  # model LSTM & fitur C+V
+                #     plt.gcf().text(0.35, 0.83, text, fontsize=12)
+                # elif self.model == 1 and self.feature == 1:  # model hybrid & fitur C+VIT
+                #     plt.gcf().text(0.35, 0.83, text, fontsize=12)
+                # elif self.model == 0 and self.feature == 1:  # model LSTM & fitur c+VIT
+                #     plt.gcf().text(0.45, 0.83, text, fontsize=12)
+                # else:
+                #     plt.gcf().text(0.35, 0.83, text, fontsize=12)
 
             elif self.data == 3:  # data B18
                 if self.model == 0 and self.feature == 0:  # model LSTM & fitur C+V
@@ -285,7 +295,7 @@ class Ui_MainWindow(object):
             # memilih data B07 akan terjadi error karena data B07 tidak menyentuh threshild sehinga variable
             # intersection berisi list kosong
             self.ax1.plot(self.X, self.pred_flat, linewidth=2, color='k', label="Prediction")
-            self.ax1.axhline(y=1.4, color='r', ls='-.', label="Failure Threshold")
+            self.ax1.axhline(y=self.failure_point, color='r', ls='-.', label="Failure Threshold")
             self.ax1.set_yticks(np.arange(1.4, max(self.pred_flat), 0.15));
             self.ax2.set_yticks(np.arange(0, max(self.X), 10));
             self.ax2.set_xticks([1]);

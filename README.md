@@ -34,3 +34,19 @@ Model machine learning yang digunakan merupakan hasil pengembangan Pusat Riset S
     ```
     python main_v2.2.py
     ```
+
+## Step 4: Convert python to .exe (optional)
+- Jalankan terminal
+- Install package pyinstaller pada environment `GUI` menggunakan command
+    ```
+    pip install pyinstaller
+    ```
+- Build file .exe dengan menjalankan command
+    ```
+    pyinstaller -i icon.ico --onefile main_v2.2.py
+    ```
+- file .exe akan berada pada folder `dist`. Folder `build` dapat dihapus karena sudah tidak diperlukan
+- pindahkan file .exe ke working directory
+- file .exe bisa dijalankan
+### NOTE:
+folder backend harus selalu berdampingan dengan file .exe karena folder tersebut berisi model dan data
