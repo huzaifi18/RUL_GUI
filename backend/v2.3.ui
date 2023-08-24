@@ -43,7 +43,7 @@
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap>siap kirim/Alt_Logo_BRIN.png</pixmap>
+             <pixmap>BRIN_main.png</pixmap>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

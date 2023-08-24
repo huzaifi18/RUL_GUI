@@ -1,6 +1,9 @@
 # Remaining Useful Life of Lithium Ion Battery Dashboard
 Model machine learning yang digunakan merupakan hasil pengembangan Pusat Riset Sains Data dan Infromasi, Badan Riset dan Inovasi Nasional.
 
+![Contoh Gambar](demo.jpg)
+
+
 # Starter Guide
 ## Step 1: Download File
 - Klik di sini untuk [download ZIP](https://github.com/huzaifi18/RUL_GUI/archive/refs/heads/main.zip), atau

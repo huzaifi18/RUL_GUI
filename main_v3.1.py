@@ -222,17 +222,20 @@ class Ui_MainWindow(object):
                 print("Berhasil load model dan transform data")
 
             elif models == 'LSTM':
+                """
                 # fitur C + V
-                # testX, SS = utils.extract_VIT_capacity([self.x_data[self.data]], [self.y_data[self.data]], 5, 1,
-                #                                        10,
-                #                                        self.feature, self.model)
-                # SC_LSTM_model = load_model(
-                #     "backend/model/SC_LSTM_model_B18_k2.h5")
-                # SC_LSTM_pred = SC_LSTM_model.predict(testX)  # C as input
-                # self.inv_pred = SS.inverse_transform(SC_LSTM_pred)
-                # self.X = range(len(self.inv_pred))
-                # self.pred_flat = self.inv_pred.flatten()
+                testX, SS = utils.extract_VIT_capacity([self.x_data[self.data]], [self.y_data[self.data]], 5, 1,
+                                                       10,
+                                                       self.feature, self.model)
+                SC_LSTM_model = load_model(
+                    "backend/model/SC_LSTM_model_B18_k2.h5")
+                SC_LSTM_pred = SC_LSTM_model.predict(testX)  # C as input
+                self.inv_pred = SS.inverse_transform(SC_LSTM_pred)
+                self.X = range(len(self.inv_pred))
+                self.pred_flat = self.inv_pred.flatten()
+                """
 
+                """
                 # fitur C + VIT
                 # testX, SS = utils.extract_VIT_capacity([self.x_data[self.data]], [self.y_data[self.data]], 5, 1,
                 #                                        10,
@@ -243,6 +246,8 @@ class Ui_MainWindow(object):
                 # self.inv_pred = SS.inverse_transform(MC_LSTM_pred)
                 # self.X = range(len(self.inv_pred))
                 # self.pred_flat = self.inv_pred.flatten()
+                """
+
                 # fitur C
                 testX, SS = utils.extract_VIT_capacity([self.x_data[self.data]], [self.y_data[self.data]], 5, 1,
                                                        10,
